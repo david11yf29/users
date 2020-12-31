@@ -8,6 +8,19 @@ const {
   GraphQLSchema
 } = graphql;
 
+
+// {
+//   "users": [
+//     { "id": "23", "firstName": "Bill", "age": 20, "companyId": "1" },
+//     { "id": "40", "firstName": "Alex", "age": 40, "companyId": "2" },
+//     { "id": "41", "firstName": "Nick", "age": 40, "companyId": "2" }
+//   ],
+//   "companies": [
+//     { "id": "1", "name": "Apple", "description": "iphone" },
+//     { "id": "2", "name": "Google", "description": "search" }
+//   ]
+// }
+
 const CompanyType = new GraphQLObjectType({
   name: 'Company',
   fields: {
@@ -24,7 +37,11 @@ const UserType = new GraphQLObjectType({
     firstName: { type: GraphQLString },
     age: { type: GraphQLInt },
     company: {
-      type: CompanyType
+      type: CompanyType,
+      resolve(parentValue, args) {
+        // console.log(parentValue, args);
+        return axios.get(`http://localhost:3000/companies/${parentValue.companyId}`).then(res => res.data);
+      }
     }
   }
 });
@@ -39,6 +56,14 @@ const RootQuery = new GraphQLObjectType({
         return axios.get(`http://localhost:3000/users/${args.id}`)
           .then(res => res.data);
       }
+    },
+    company: {
+      type: CompanyType,
+      args: { id: { type: GraphQLString } },
+      resolve(parentValue, args) {
+        return axios.get(`http://localhost:3000/companies/${args.id}`)
+          .then(res => res.data);
+      } 
     }
   }
 }); 
